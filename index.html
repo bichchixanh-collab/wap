@@ -227,7 +227,15 @@ function card(g, idx=0){
 })();
 let pending={href:'#'};
 function doDownload(name,res){
-  pending.href=`files/${res}/${name}.jar`;
+  let href=`files/${res}/${name}.jar`;
+  try{
+    const g = (typeof CACHE!=='undefined' && CACHE) ? CACHE.find(x=>x.name===name || x.name.trim()===name.trim()) : null;
+    if(g && g.jar){
+      if(g.jar[res]) href=g.jar[res];
+      else { const v=Object.values(g.jar)[0]; if(v) href=v; }
+    }
+  }catch(e){}
+  pending.href=href;
   document.getElementById('modalMsg').textContent=`Bạn sắp tải ${name} (${res})`;
   const img=document.querySelector('.modal-anime-img');
   if(img){
