@@ -276,8 +276,9 @@ function playClick(f=880,d=0.12,v=0.22){try{const c=new (window.AudioContext||wi
 function playGlitch(){try{const c=new (window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();o.type='square';o.frequency.value=120+Math.random()*300;f.type='bandpass';f.frequency.value=900;f.Q.value=8;g.gain.value=0.12;o.connect(f);f.connect(g);g.connect(c.destination);o.start();g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+0.18);o.stop(c.currentTime+0.18)}catch(e){}}
 const ANIME_POOL=['assets/anime-girl.png','assets/anime-1.png','assets/anime-2.png','assets/anime-3.png','assets/anime-4.png','assets/anime-5.png','assets/anime-6.png','assets/anime-7.png','assets/anime-8.png'];
 let pending={href:'#',name:'',res:''};
+function findGame(id){ let g=GAMES_MAP[id]; if(g) return g; const suf=id.split('-').pop(); g=Object.values(GAMES_MAP).find(x=>x.id.endsWith(suf)); if(g) return g; const s=slugifyVi(id); return Object.values(GAMES_MAP).find(x=>slugifyVi(x.name)===s || x.id===s); }
 function doDownload(name,res){
-  playClick(); let href='#'; const g=GAMES_MAP[getId()]; if(g) href=g.jar[res]||'#'; if(!href||href==='#') href=`files/${res}/${name.replace(/\s+/g,'_')}.jar`;
+  playClick(); let href='#'; const g=findGame(getId()); if(g) href=g.jar[res]||'#'; if(!href||href==='#') href=`files/${res}/${name.replace(/\s+/g,'_')}.jar`;
   pending={href,name,res}; document.getElementById('modalMsg').textContent=`Bạn sắp tải ${name} (${res})`;
   const img=document.querySelector('.modal-anime-img'); if(img){const ch=ANIME_POOL[Math.floor(Math.random()*ANIME_POOL.length)]; img.style.display='block'; img.src=ch; fetch('https://api.waifu.pics/sfw/waifu').then(r=>r.json()).then(j=>{if(j.url)img.src=j.url}).catch(()=>{})}
   const banner=document.querySelector('.modal-banner img'); if(banner){const bPool=['assets/banners/banner1.png','assets/banners/banner2.png','assets/banners/banner3.png','assets/banners/banner4.png','assets/banners/banner5.png','assets/banners/banner6.png','assets/banners/banner7.png','assets/banners/banner8.png']; banner.src=bPool[Math.floor(Math.random()*bPool.length)];}
