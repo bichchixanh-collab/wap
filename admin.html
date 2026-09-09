@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin - JAVA.WAP.SH</title>
+<script>(function(){var p=location.pathname;var base=p.indexOf('/blog/')===0?'/blog/':'/';var b=document.createElement('base');b.href=base;document.head.prepend(b);})();</script>
+<link rel="stylesheet" href="style.css">
+<style>
+body{padding:12px;background:#fff0f6}
+.wrap{max-width:720px;margin:0 auto;display:grid;gap:12px}
+.card{background:#fff;border:2px solid #ff8ec7;border-radius:14px;padding:14px}
+input,textarea,select{width:100%;padding:8px;border:1.5px solid #ffb3d9;border-radius:8px;font-size:13px}
+label{font-size:12px;font-weight:700;color:#ff4d8d}
+.btn{background:linear-gradient(180deg,#ff8ec7,#ff4d8d);color:#fff;border:2px solid #fff;padding:10px 16px;border-radius:24px;font-weight:800;cursor:pointer;box-shadow:0 4px 0 #d43a6f}
+pre{background:#1a1a2e;color:#7fb1ff;padding:12px;border-radius:8px;overflow:auto;font-size:11px;max-height:320px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1 style="font-family:Mali,cursive;color:#ff4d8d;text-align:center">Admin - Thêm Game</h1>
+<p style="text-align:center;font-size:11px;color:#8a6a7a">Tạo slug tiếng Việt đẹp: <code>slugifyVi(ten) + '-' + Date.now()</code> → <code>kiem-linh-chu-tien-chi-chien-1788855732</code></p>
+
+<div class="card">
+<label>Tên game *</label><input id="name" placeholder="Kiếm Linh - Chư Tiên Chi Chiến">
+<label>Thể loại</label><select id="cat"><option>Nhập vai</option><option>Hành Động</option><option>Đua xe</option><option>Bắn súng</option><option>Trí tuệ</option><option>Thể thao</option><option>Phiêu lưu</option><option>Nông trại</option></select>
+<label>Dung lượng</label><input id="size" value="1.28 MB">
+<label>Link JAR 240x320 *</label><input id="jar" placeholder="https://www.mediafire.com/file/.../file">
+<label>Thumb URL</label><input id="thumb" placeholder="https://...jpg">
+<label>Ảnh shots (mỗi dòng 1 URL)</label><textarea id="shots" rows="3" placeholder="https://...jpg"></textarea>
+<label>Mô tả</label><textarea id="desc" rows="4"></textarea>
+<label><input type="checkbox" id="vi" checked> Việt Hóa</label> <label><input type="checkbox" id="hot"> HOT</label>
+<p style="font-size:11px">ID/slug sẽ tự tạo: <b id="preview">-</b></p>
+<button class="btn" onclick="gen()">Tạo JSON</button>
+<button class="btn" style="background:#fff;color:#ff4d8d;border-color:#ffb3d9" onclick="download()">Tải data/games.json mới</button>
+</div>
+
+<div class="card">
+<h3>JSON xem trước</h3><pre id="out">...</pre>
+<p style="font-size:11px;color:#8a6a7a">Copy đoạn object vào <code>data/games.json</code> (mảng), sau đó <code>git add data/games.json && git commit && git push</code>. Vercel tự deploy, URL đẹp sẽ là <code>/game/&lt;id&gt;.html</code> nhờ <code>vercel.json:4</code>.</p>
+</div>
+
+<div class="card">
+<h3>Games hiện tại</h3><pre id="list">đang tải...</pre>
+</div>
+</div>
+
+<script>
+function slugifyVi(s){
+  s=(s||'').toLowerCase();
+  s=s.replace(/đ/g,'d').replace(/Đ/g,'d');
+  try{ s=s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }catch(e){}
+  s=s.replace(/[^a-z0-9]+/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  return s;
+}
+let CACHE=[];
+async function load(){ try{ const r=await fetch('data/games.json?'+Date.now()); CACHE=await r.json(); document.getElementById('list').textContent=JSON.stringify(CACHE,null,2); }catch(e){ document.getElementById('list').textContent='lỗi tải: '+e } }
+load();
+document.getElementById('name').addEventListener('input',()=>{
+  const n=document.getElementById('name').value.trim();
+  const id=n? slugifyVi(n)+'-'+Date.now() : '-';
+  document.getElementById('preview').textContent=id;
+});
+
+let lastObj=null;
+function gen(){
+  const name=document.getElementById('name').value.trim();
+  if(!name) return alert('Nhập tên game');
+  const cat=document.getElementById('cat').value;
+  const size=document.getElementById('size').value||'1 MB';
+  const jar=document.getElementById('jar').value.trim();
+  if(!jar) return alert('Nhập link JAR');
+  const thumb=document.getElementById('thumb').value.trim()||'https://picsum.photos/seed/'+Date.now()+'/120/120';
+  const shots=document.getElementById('shots').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const desc=document.getElementById('desc').value.trim()||name;
+  const id=slugifyVi(name)+'-'+Date.now();
+  document.getElementById('preview').textContent=id;
+  lastObj={id,name,cat,dev:"Chưa rõ",size,ver:"1",rating:4.5,downloads:0,res:["240x320"],hot:document.getElementById('hot').checked,vi:document.getElementById('vi').checked,new:true,desc,thumb,shots:shots.length?shots:[thumb],jar:{"240x320":jar}};
+  document.getElementById('out').textContent=JSON.stringify(lastObj,null,2);
+}
+
+function download(){
+  if(!lastObj) return alert('Bấm Tạo JSON trước');
+  const newArr=[lastObj, ...CACHE];
+  const blob=new Blob([JSON.stringify(newArr,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='games.json'; a.click();
+  document.getElementById('out').textContent='Đã tải games.json mới ('+newArr.length+' game). Thay file data/games.json bằng file vừa tải rồi push.';
+}
+</script>
+</body>
+</html>

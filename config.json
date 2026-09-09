@@ -1,0 +1,14 @@
+{
+  "siteName": "JAVA.WAP.SH",
+  "domain": "https://java.wap.sh",
+  "vercelUrl": "https://j2mewap.vercel.app",
+  "description": "Kho game Java J2ME .JAR",
+  "slugMode": "vietnamese",
+  "rewrite": {
+    "source": "/game/(.*)",
+    "destination": "/game.html"
+  },
+  "fieldsRemoved": ["dev", "ver", "rating", "downloads", "format"],
+  "lightbox": true,
+  "popupFix": true
+}
